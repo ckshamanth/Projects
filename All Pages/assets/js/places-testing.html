@@ -64,8 +64,8 @@
             service.nearbySearch(
               {
                 location: pos,
-                radius: 50000,
-                type: ["restaurant"],
+                radius: 5000000,
+                type: ["convention_hall"],
               },
               callback
             );
@@ -131,31 +131,53 @@ function callback(results, status) {
             const directionButton = document.createElement("button");
             directionButton.textContent = "Get Directions";
             directionButton.addEventListener("click", () => {
-              const directionsService = new google.maps.DirectionsService();
-              const directionsRenderer = new google.maps.DirectionsRenderer();
-              directionsRenderer.setMap(map);
-              directionsService.route(
-                {
-                  origin: userLocation,
-                  destination: place.geometry.location,
-                  travelMode: google.maps.TravelMode.DRIVING,
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const origin = new google.maps.LatLng(
+                    position.coords.latitude,
+                    position.coords.longitude
+                    );
+                    const destination = place.geometry.location;
+                    const directionsService = new google.maps.DirectionsService();
+                    const directionsRenderer = new google.maps.DirectionsRenderer();
+                    directionsRenderer.setMap(map);
+                    directionsService.route(
+                    {
+                        origin: origin,
+                        destination: destination,
+                        travelMode: google.maps.TravelMode.DRIVING,
+                    },
+                    (response, status) => {
+                        if (status === "OK") {
+                        directionsRenderer.setDirections(response);
+
+                        window.open(
+                            `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`,
+                            "_blank"
+                        );
+                        } else {
+                        alert("Directions request failed due to " + status);
+                        }
+                    }
+                    );
                 },
-                (response, status) => {
-                  if (status === "OK") {
-                    directionsRenderer.setDirections(response);
-                    const distance = response.routes[0].legs[0].distance.text;
-                    alert(`The distance to ${name} is ${distance}`);
-                  } else {
-                    alert("Directions request failed due to " + status);
-                  }
+                (error) => {
+                    console.log(error);
+                    alert("Could not get current location.");
                 }
-              );
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
             });
+
 
             placeCard.appendChild(placeImage);
             placeCard.appendChild(placeName);
             placeCard.appendChild(placeRating);
             placeCard.appendChild(placeDistance);
+            
             placeCard.appendChild(directionButton);
             placesContainer.appendChild(placeCard);
           }
