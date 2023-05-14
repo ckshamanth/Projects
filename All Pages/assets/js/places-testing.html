@@ -75,43 +75,74 @@
         }
       }
 
-      function callback(results, status) {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          const placesContainer = document.getElementById("places-container");
-          placesContainer.innerHTML = "";
+function callback(results, status) {
+  if (status === google.maps.places.PlacesServiceStatus.OK) {
+    const placesContainer = document.getElementById("places-container");
+    placesContainer.innerHTML = "";
 
-          for (let i = 0; i < results.length; i++) {
-            const place = results[i];
-            const name = place.name;
-            const photoUrl = place.photos
-              ? place.photos[0].getUrl({ maxWidth: 500, maxHeight: 500 })
-              : "";
-            const rating = place.rating || "N/A";
+    for (let i = 0; i < results.length; i++) {
+      const place = results[i];
+      const name = place.name;
+      const photoUrl = place.photos
+        ? place.photos[0].getUrl({ maxWidth: 500, maxHeight: 500 })
+        : "";
+      const rating = place.rating || "N/A";
 
-            const placeCard = document.createElement("div");
-            placeCard.className = "place-card";
+      const placeCard = document.createElement("div");
+      placeCard.className = "place-card";
 
-            const placeImage = document.createElement("img");
-            placeImage.className = "place-image";
-            placeImage.src = photoUrl;
+      const placeImage = document.createElement("img");
+      placeImage.className = "place-image";
+      placeImage.src = photoUrl;
 
-            const placeName = document.createElement("p");
-            placeName.className = "place-name";
-            placeName.textContent = name;
+      const placeName = document.createElement("p");
+      placeName.className = "place-name";
+      placeName.textContent = name;
 
-            const placeRating = document.createElement("p");
-            placeRating.className = "place-rating";
-            placeRating.textContent = `Rating: ${rating}`;
+      const placeRating = document.createElement("p");
+      placeRating.className = "place-rating";
+      placeRating.textContent = `Rating: ${rating}`;
 
-            placeCard.appendChild(placeImage);
-            placeCard.appendChild(placeName);
-            placeCard.appendChild(placeRating);
-            placesContainer.appendChild(placeCard);
+      const directionButton = document.createElement("button");
+      directionButton.textContent = "Get Directions";
+      directionButton.addEventListener("click", () => {
+        const origin = new google.maps.LatLng(
+          map.getCenter().lat(),
+          map.getCenter().lng()
+        );
+        const destination = place.geometry.location;
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+        directionsService.route(
+          {
+            origin: origin,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (response, status) => {
+            if (status === "OK") {
+              directionsRenderer.setDirections(response);
+              const distance = response.routes[0].legs[0].distance.text;
+              alert(`The distance to ${name} is ${distance}`);
+            } else {
+              alert("Directions request failed due to " + status);
+            }
           }
-        } else {
-          alert("Nearby search failed: " + status);
-        }
-      }
+        );
+      });
+
+      placeCard.appendChild(placeImage);
+      placeCard.appendChild(placeName);
+      placeCard.appendChild(placeRating);
+      placeCard.appendChild(directionButton);
+      placesContainer.appendChild(placeCard);
+    }
+  } else {
+    alert("Nearby search failed: " + status);
+  }
+}
+
     </script>
   </body>
 </html>
