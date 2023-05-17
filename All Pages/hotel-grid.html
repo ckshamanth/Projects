@@ -288,7 +288,169 @@ Title and Tabs START -->
 
           <div class="hstack gap-4 flex-wrap align-items-center">
 			<!-- Button -->
-			<button class="btn btn-primary-soft mb-0" onclick="getlocation()">Locate Me</button>
+			<button class="btn btn-primary-soft mb-0" onclick="getCurrentLocation()">Locate Me</button>
+
+			<div id="map"></div>
+
+			<div id="places-container"></div>
+		
+			<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1ywNCiVeJNcxz7eK9KFzYwmvXleZT3ko&libraries=places&callback=initMap"></script>
+		
+			<script>
+			  let map;
+			  let service;
+		
+			  function initMap() {
+				map = new google.maps.Map(document.getElementById("map"), {
+				  center: { lat: -33.867, lng: 151.195 },
+				  zoom: 15,
+				});
+			  }
+		
+			  function getCurrentLocation() {
+				if (navigator.geolocation) {
+				  navigator.geolocation.getCurrentPosition((position) => {
+					const pos = {
+					  lat: position.coords.latitude,
+					  lng: position.coords.longitude,
+					};
+		
+					map = new google.maps.Map(document.getElementById("map"), {
+					  center: pos,
+					  zoom: 15,
+					});
+		
+					service = new google.maps.places.PlacesService(map);
+					service.nearbySearch(
+					  {
+						location: pos,
+						radius: 50000,
+						type: ["Convention Centre"],
+					  },
+					  callback
+					);
+				  });
+				} else {
+				  alert("Geolocation is not supported by this browser.");
+				}
+			  }
+		
+		function callback(results, status) {
+		  if (status === google.maps.places.PlacesServiceStatus.OK) {
+			const placesContainer = document.getElementById("places-container");
+			placesContainer.innerHTML = "";
+		
+			// get user's current location
+			const userLocation = new google.maps.LatLng(
+			  map.getCenter().lat(),
+			  map.getCenter().lng()
+			);
+		
+			// create Distance Matrix service
+			const distanceService = new google.maps.DistanceMatrixService();
+			
+			for (let i = 0; i < results.length; i++) {
+			  const place = results[i];
+			  const name = place.name;
+			  const photoUrl = place.photos
+				? place.photos[0].getUrl({ maxWidth: 500, maxHeight: 500 })
+				: "";
+			  const rating = place.rating || "N/A";
+			  let distance;
+		
+			  // calculate distance between user's location and restaurant
+			  distanceService.getDistanceMatrix(
+				{
+				  origins: [userLocation],
+				  destinations: [place.geometry.location],
+				  travelMode: google.maps.TravelMode.DRIVING,
+				},
+				function (response, status) {
+				  if (status == google.maps.DistanceMatrixStatus.OK) {
+					distance = response.rows[0].elements[0].distance.text;
+					// create the place card
+					const placeCard = document.createElement("div");
+					placeCard.className = "card-body px-3 pb-0";
+		
+					const placeImage = document.createElement("img");
+					placeImage.className = "place-image";
+					placeImage.src = photoUrl;
+		
+					const placeName = document.getElementsByClassName("card-title");
+					placeName.className = "card-title";
+					placeName.textContent = name;
+		
+					const placeRating = document.createElement("p");
+					placeRating.className = "place-rating";
+					placeRating.textContent = `Rating: ${rating}`;
+		
+					const placeDistance = document.createElement("p");
+					placeDistance.className = "place-distance";
+					placeDistance.textContent = `Distance: ${distance}`;
+		
+					const directionButton = document.createElement("button");
+					directionButton.textContent = "Get Directions";
+					directionButton.addEventListener("click", () => {
+					if (navigator.geolocation) {
+						navigator.geolocation.getCurrentPosition(
+						(position) => {
+							const origin = new google.maps.LatLng(
+							position.coords.latitude,
+							position.coords.longitude
+							);
+							const destination = place.geometry.location;
+							const directionsService = new google.maps.DirectionsService();
+							const directionsRenderer = new google.maps.DirectionsRenderer();
+							directionsRenderer.setMap(map);
+							directionsService.route(
+							{
+								origin: origin,
+								destination: destination,
+								travelMode: google.maps.TravelMode.DRIVING,
+							},
+							(response, status) => {
+								if (status === "OK") {
+								directionsRenderer.setDirections(response);
+		
+								window.open(
+									`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`,
+									"_blank"
+								);
+								} else {
+								alert("Directions request failed due to " + status);
+								}
+							}
+							);
+						},
+						(error) => {
+							console.log(error);
+							alert("Could not get current location.");
+						}
+						);
+					} else {
+						alert("Geolocation is not supported by this browser.");
+					}
+					});
+		
+		
+					placeCard.appendChild(placeImage);
+					placeCard.appendChild(placeName);
+					placeCard.appendChild(placeRating);
+					placeCard.appendChild(placeDistance);
+					
+					placeCard.appendChild(directionButton);
+					placesContainer.appendChild(placeCard);
+				  }
+				}
+			  );
+			}
+		  } else {
+			alert("Nearby search failed: " + status);
+		  }
+		}
+		
+		
+			</script>
 
 
 		</div>
@@ -602,7 +764,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Hotel Baljees Regency</a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">Sri Greens Party Hall</a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -649,7 +811,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Courtyard by Marriott New York </a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">MST Hall </a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -695,7 +857,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Club Quarters Hotel</a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">Jnanakshi Convention Hall</a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -741,7 +903,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Beverly Hills Marriott</a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">Gnanakshi Conventional Hall</a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -787,7 +949,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Courtyard by Marriott New York </a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">RG Palace Convention Hall </a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -833,7 +995,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Park Plaza Lodge Hotel</a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">HMT KALYANA MANTAPA</a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -880,7 +1042,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Royal Beach Resort</a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">KP Convention Hall</a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -926,7 +1088,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Pride moon Village Resort & Spa</a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">K P Kalyan Mantappa</a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
@@ -972,7 +1134,7 @@ Hotel grid START -->
 						</div>
 
 						<!-- Title -->
-						<h5 class="card-title"><a href="hotel-detail.html">Carina Beach Resort</a></h5>
+						<h5 class="card-title"><a href="hotel-detail.html">Shubhodaya Kalyana Mantapa</a></h5>
 
 						<!-- List -->
 						<ul class="nav nav-divider mb-2 mb-sm-3">
