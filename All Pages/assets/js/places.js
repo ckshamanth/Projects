@@ -30,7 +30,7 @@ function callback(results, status) {
       placeImage.src =
         "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=" +
         place.photos[0].photo_reference +
-        "&key=AIzaSyD1ywNCiVeJNcxz7eK9KFzYwmvXleZT3ko";
+        "&key=apikeyyy";
 
       var placeName = document.createElement("h2");
       placeName.className = "place-name";
